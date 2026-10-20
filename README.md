@@ -62,7 +62,7 @@ styles:
 | `modes` | the climate's `hvac_modes`, plus `boost` | What the menu offers, in order. `boost` only appears when the climate can boost. |
 | `boost` | | `minutes` (default `60`) and `temperature` (default `21`) for a boost started from the menu. `entity` is an optional binary sensor that is on during a boost. Its last change times the countdown. |
 | `off_reasons` | none | While the climate is off, the first entry that matches says why. Each entry takes `entity`, `state` or `not_state`, `status` (the header word in place of `Off`), `label` (shown centred under the track, where the boost's time left goes) and `icon`. |
-| `icons` | | Icons for the pip: `heating` (`mdi:fire`), `idle` (`mdi:thermostat`), `boost` (`mdi:fire-alert`) and `off` (`mdi:power`). |
+| `icons` | | Icons for the pip: `heating` (`mdi:fire`), `idle` (`mdi:thermometer`), `boost` (`mdi:fire-alert`) and `off` (`mdi:power`). |
 | `glow` | `true` | The glow round the fill while heating. Its look is set under `styles: glow:`. |
 | `tap_action` | `more-info` | Tapping the name or the pip. |
 | `hold_action` | `more-info` | Holding the slider. |

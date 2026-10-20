@@ -35,7 +35,7 @@
  *       icon: mdi:home-export-outline
  *   icons:                     # pip icons
  *     heating: mdi:fire
- *     idle: mdi:thermostat
+ *     idle: mdi:thermometer
  *     boost: mdi:fire-alert
  *     off: mdi:power
  *   glow: true                 # the soft light round the fill while heating
@@ -68,7 +68,7 @@
  * While a boost runs, the slider sets the boost temperature.
  */
 
-const VERSION = "0.1.1";
+const VERSION = "0.1.2";
 const HOLD_MS = 500;
 const DOUBLE_TAP_MS = 250;
 const KEY_MS = 600;
@@ -78,7 +78,7 @@ const HISTORY_REFRESH_MS = 3600000;
 const COUNTDOWN_MS = 30000;
 const GLOW_DEFAULTS = { gap: 0, softness: 32, strength: 75, drag: 10, edge: 55, edge_width: 12 };
 const PIP_TINT = 80; // as expressive-slider-card
-const ICONS = { heating: "mdi:fire", idle: "mdi:thermostat", boost: "mdi:fire-alert", off: "mdi:power" };
+const ICONS = { heating: "mdi:fire", idle: "mdi:thermometer", boost: "mdi:fire-alert", off: "mdi:power" };
 const MODE_NAMES = { auto: "Auto", heat: "Heat", cool: "Cool", heat_cool: "Heat/cool", dry: "Dry", fan_only: "Fan", off: "Off" };
 const MODE_HINTS = { auto: "schedule", heat: "hold target" };
 

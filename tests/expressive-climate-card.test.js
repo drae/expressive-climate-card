@@ -68,7 +68,7 @@ const pick = (el, label) => menuItems(el).find((b) => b.firstChild.textContent =
   ok($(c, ".val .md").nextElementSibling.classList.contains("arr"), "the chevron follows the mode, not the temperature");
   ok(text(c, ".sub") === "Idle · 19.2°", "status: idle · room temperature from temperature_entity");
   ok($(c, ".pip").style.getPropertyValue("--es-pip-bg").includes(" 80%") && $(c, ".pip").style.getPropertyValue("--es-pip-fg") === "rgba(255,255,255,.7)", "pip coloured as the slider card");
-  ok($(c, ".pip ha-icon").icon === "mdi:thermostat", "idle icon");
+  ok($(c, ".pip ha-icon").icon === "mdi:thermometer", "idle icon");
   ok($(c, ".track").style.getPropertyValue("--es-active").includes("state-climate-auto-color"), "idle fill uses the auto colour");
   ok(!$(c, ".track").classList.contains("lit"), "no glow while idle");
   ok(Math.abs(Number($(c, ".track").style.getPropertyValue("--ec-p")) - 6.5 / 13) < 1e-9, "handle at 18.5 on 12–25");
