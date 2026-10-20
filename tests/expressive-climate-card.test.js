@@ -23,7 +23,8 @@ let states = base();
 let calls = [];
 let hive = true;
 let ws = [];
-const history = { [ROOM]: [{ s: "18.8" }, { s: "19.4" }, { s: "19.9" }, { s: "unavailable" }] };
+const history = { [ROOM]: [{ s: "18.8" }, { s: "19.4" }, { s: "19.9" }, { s: "unavailable" }],
+  [CL]: [{ s: "auto", a: { temperature: 19 } }, { s: "off", a: { temperature: 7 } }, { s: "auto", a: { temperature: 7 } }] };
 const hass = () => ({
   states: { ...states },
   services: hive ? { hive: { boost_heating_on: {}, boost_heating_off: {} } } : {},
@@ -66,13 +67,14 @@ const pick = (el, label) => menuItems(el).find((b) => b.firstChild.textContent =
   ok(!!$(c, ".val .arr svg"), "chevron after the mode");
   ok($(c, ".val .md").nextElementSibling.classList.contains("arr"), "the chevron follows the mode, not the temperature");
   ok(text(c, ".sub") === "Idle · 19.2°", "status: idle · room temperature from temperature_entity");
+  ok($(c, ".pip").style.getPropertyValue("--es-pip-bg").includes(" 80%") && $(c, ".pip").style.getPropertyValue("--es-pip-fg") === "rgba(255,255,255,.7)", "pip coloured as the slider card");
   ok($(c, ".pip ha-icon").icon === "mdi:thermostat", "idle icon");
   ok($(c, ".track").style.getPropertyValue("--es-active").includes("state-climate-auto-color"), "idle fill uses the auto colour");
   ok(!$(c, ".track").classList.contains("lit"), "no glow while idle");
   ok(Math.abs(Number($(c, ".track").style.getPropertyValue("--ec-p")) - 6.5 / 13) < 1e-9, "handle at 18.5 on 12–25");
   ok(Math.abs(Number($(c, ".ghost").style.getPropertyValue("--es-g")) - 7.2 / 13) < 1e-9, "room mark at 19.2");
   ok(c.shadowRoot.querySelectorAll(".tick").length === 12, "a dot every 1° inside 12–25 (13…24)");
-  ok(text(c, ".foot .mn") === "12.0°" && text(c, ".foot .mx") === "25.0°" && text(c, ".foot .bt") === "", "12° / 25° under the track, no boost text");
+  ok(text(c, ".foot .mn") === "12°" && text(c, ".foot .mx") === "25°" && text(c, ".foot .bt") === "", "12° / 25° under the track, no boost text");
 
   // 24 h band from history, widened by live readings
   await later();
@@ -121,6 +123,14 @@ const pick = (el, label) => menuItems(el).find((b) => b.firstChild.textContent =
   states[CL] = climate("auto", { temperature: 7 });
   update(c);
   ok(text(c, ".val") === "18.5°·Auto", "an out-of-range target holds the last good one");
+  // A card loaded during such a reading looks back in the recorder
+  ws = [];
+  let fresh = mk();
+  ok(text(fresh, ".val") === "–·Auto", "unknown target shows a dash, not the bottom of the range");
+  await later();
+  ok(ws.some((m) => m.entity_ids[0] === CL && !m.no_attributes), "looks up the climate's history");
+  ok(text(fresh, ".val") === "19.0°·Auto", "takes the last good target from the recorder");
+  fresh.remove();
 
   // Drag: snaps to the step, sends on release, faded until reported
   states = base();

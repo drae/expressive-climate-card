@@ -72,7 +72,7 @@ styles:
 ## Behaviour
 
 - **Target:** a drag sends `climate.set_temperature` when you let go, and a tap on the track jumps there. Arrow keys step, then send 600 ms after the last press. Nothing can be set while off.
-- **Waiting for the thermostat:** a requested target or mode stays faded, with `Updating…` in the status, until the climate reports it or 3 minutes pass. Some thermostats report a frost-protection target (such as 7°) for a poll or two after waking from off. A target outside the range is ignored and the last good one stays.
+- **Waiting for the thermostat:** a requested target or mode stays faded, with `Updating…` in the status, until the climate reports it or 3 minutes pass. Some thermostats report a frost-protection target (such as 7°) for a poll or two after waking from off. A target outside the range is ignored and the last good one stays. A card that loads during such a reading looks back up to 48 hours in the recorder for the last good target, and shows `–` if it finds none.
 - **Modes:** the menu calls `climate.set_hvac_mode`. Picking a mode during a boost ends the boost first.
 - **Boost:** with the Hive integration loaded, boost calls `hive.boost_heating_on` with `time_period` and `temperature`, and `hive.boost_heating_off` to stop. Otherwise it uses the climate's `boost` preset. A boost is running while `preset_mode` is `boost`.
 
@@ -83,7 +83,7 @@ Each block styles one element, and the keys are CSS properties. `size`, `weight`
 Elements: `card`, `header`, `name`, `status`, `value`, `track`, `fill`, `empty`, `handle`, `bubble`, `pip`, `icon`, `band`, `mark` (the room temperature), `labels`, `boost` (the time left), `menu` and `glow`.
 
 - **`track`** also takes `height`, `radius`, `inner-radius`, `gap`, `handle-width`, `tile` (the colour the empty part is mixed from), `heating` and `idle` (the fill colours).
-- **`pip`** takes `size`, and `background`: a number is the % of the fill colour mixed with black (default `25`), anything else is a fixed colour.
+- **`pip`** takes `size`, and `background`: a number is the % of the fill colour mixed with black (default `80`, as the slider), anything else is a fixed colour.
 - **`glow`** takes `gap`, `softness`, `strength`, `edge`, `edge_width` and `drag`.
 
 ## Licence

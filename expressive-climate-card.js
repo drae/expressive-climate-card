@@ -55,7 +55,7 @@
  *       idle: "#75985d"        # fill while idle; default --state-climate-auto-color
  *       height: 56
  *     pip:
- *       background: 25         # number = % of the fill colour mixed with black; or a fixed colour
+ *       background: 80         # number = % of the fill colour mixed with black; or a fixed colour
  *     glow:
  *       softness: 32
  *       strength: 75
@@ -68,7 +68,7 @@
  * While a boost runs, the slider sets the boost temperature.
  */
 
-const VERSION = "0.1.0";
+const VERSION = "0.1.1";
 const HOLD_MS = 500;
 const DOUBLE_TAP_MS = 250;
 const KEY_MS = 600;
@@ -77,7 +77,7 @@ const REQUEST_MAX_MS = 180000; // a requested change is dropped after this long 
 const HISTORY_REFRESH_MS = 3600000;
 const COUNTDOWN_MS = 30000;
 const GLOW_DEFAULTS = { gap: 0, softness: 32, strength: 75, drag: 10, edge: 55, edge_width: 12 };
-const PIP_TINT = 25;
+const PIP_TINT = 80; // as expressive-slider-card
 const ICONS = { heating: "mdi:fire", idle: "mdi:thermostat", boost: "mdi:fire-alert", off: "mdi:power" };
 const MODE_NAMES = { auto: "Auto", heat: "Heat", cool: "Cool", heat_cool: "Heat/cool", dry: "Dry", fan_only: "Fan", off: "Off" };
 const MODE_HINTS = { auto: "schedule", heat: "hold target" };
@@ -293,6 +293,8 @@ class ExpressiveClimateCard extends HTMLElement {
     this._glow = config.glow === false || g === false ? null : { ...GLOW_DEFAULTS, ...flat(g) };
     this._history = null;
     this._historyKey = null;
+    this._lastGood = null;
+    this._lookedBack = false;
     if (!this.shadowRoot) this._build();
     this._applyConfig();
     this._render();
@@ -438,7 +440,34 @@ class ExpressiveClimateCard extends HTMLElement {
       if (this._stateObj.state !== "off") this._lastGood = t;
       return t;
     }
-    return this._lastGood ?? (Number.isFinite(t) ? clamp(t, min, max) : min);
+    if (this._lastGood == null) this._findLastGood();
+    return this._lastGood ?? null;
+  }
+
+  // A card loaded while the climate reads an odd target looks back in the recorder for the last good one.
+  async _findLastGood() {
+    if (this._lookedBack || !this._hass?.callWS) return;
+    this._lookedBack = true;
+    const id = this._config.entity;
+    try {
+      const res = await this._hass.callWS({
+        type: "history/history_during_period",
+        start_time: new Date(Date.now() - 48 * 3600000).toISOString(),
+        entity_ids: [id],
+        minimal_response: false,
+        no_attributes: false,
+        significant_changes_only: false,
+      });
+      const { min, max } = this._r;
+      const good = (res?.[id] ?? []).filter((e) => (e.s ?? e.state) !== "off")
+        .map((e) => num((e.a ?? e.attributes)?.temperature)).filter((t) => Number.isFinite(t) && t >= min && t <= max);
+      if (good.length && this._lastGood == null) {
+        this._lastGood = good.at(-1);
+        if (!this._dragging) this._render();
+      }
+    } catch (_) {
+      /* stays unknown until the climate reports a good target */
+    }
   }
 
   _target() {
@@ -590,7 +619,7 @@ class ExpressiveClimateCard extends HTMLElement {
     this._track.classList.toggle("lit", !!this._glow && !off && a === "heating");
     this._pip.style.setProperty("--es-pip-bg", off ? "var(--card-background-color, #3a3b3d)"
       : typeof pb === "string" ? pb : `color-mix(in srgb, ${fill} ${pb ?? PIP_TINT}%, #000)`);
-    this._pip.style.setProperty("--es-pip-fg", off ? "var(--secondary-text-color)" : fill);
+    this._pip.style.setProperty("--es-pip-fg", off ? "var(--secondary-text-color)" : "rgba(255,255,255,.7)");
     const reason = a === "off" ? this._offReason() : null;
     this._icon.icon = off ? reason?.icon ?? this._icons.off : this._boosting() ? this._icons.boost : this._icons[a];
 
@@ -654,8 +683,9 @@ class ExpressiveClimateCard extends HTMLElement {
 
   _renderFoot() {
     const labels = this._config.labels !== false;
-    this._foot.querySelector(".mn").textContent = labels ? this._deg(this._r.min) : "";
-    this._foot.querySelector(".mx").textContent = labels ? this._deg(this._r.max) : "";
+    const end = (v) => `${Number.isInteger(v) ? v : this._fmt(v)}°`;
+    this._foot.querySelector(".mn").textContent = labels ? end(this._r.min) : "";
+    this._foot.querySelector(".mx").textContent = labels ? end(this._r.max) : "";
     const boosting = this._boosting() && !this._req?.boost;
     const left = boosting ? this._boostLeft() : null;
     const bt = this._foot.querySelector(".bt");
@@ -673,13 +703,15 @@ class ExpressiveClimateCard extends HTMLElement {
   }
 
   // The value alone; this is all that runs while dragging.
+  // v is null while the target is unknown (an odd reading with no good one to fall back on).
   _renderValue(v) {
-    const p = (this._p = this._frac(v));
+    const known = v != null;
+    const p = (this._p = known ? this._frac(v) : 0);
     const t = this._track;
     t.style.setProperty("--ec-p", p);
-    t.setAttribute("aria-valuenow", v);
+    t.setAttribute("aria-valuenow", known ? v : "");
     this._stop.classList.toggle("hide", p >= 0.97);
-    this._bubble.textContent = this._fmt(v);
+    this._bubble.textContent = known ? this._fmt(v) : "";
     this._bubble.classList.toggle("show", !!this._dragging);
     if (this._unavailable) {
       this._valEl.textContent = "Unavailable";
@@ -691,7 +723,7 @@ class ExpressiveClimateCard extends HTMLElement {
       this._valEl.innerHTML = `<span class="t off${pendM ? " pend" : ""}">Off</span><span class="arr">${CHEVRON}</span>`;
     } else {
       const md = this._boosting() ? "Boost" : MODE_NAMES[this._mode()] ?? this._mode();
-      this._valEl.innerHTML = `<span class="t${pendT && !this._dragging ? " pend" : ""}">${this._deg(v)}</span>` +
+      this._valEl.innerHTML = `<span class="t${pendT && !this._dragging ? " pend" : ""}">${known ? this._deg(v) : "–"}</span>` +
         `<span class="sep" aria-hidden="true">·</span><span class="md${pendM ? " pend" : ""}">${md}</span><span class="arr">${CHEVRON}</span>`;
     }
     if (!this._menu.hidden) this._fillMenu();
@@ -863,7 +895,7 @@ class ExpressiveClimateCard extends HTMLElement {
   _key(e) {
     if (this._unavailable || this._off) return;
     const { min, max, step } = this._r;
-    const cur = this._pending ?? this._target();
+    const cur = this._pending ?? this._target() ?? this._roomTemp() ?? min;
     const delta = { ArrowRight: step, ArrowUp: step, ArrowLeft: -step, ArrowDown: -step, PageUp: 1, PageDown: -1 }[e.key];
     let next = delta !== undefined ? cur + delta : e.key === "Home" ? min : e.key === "End" ? max : null;
     if (next === null) return;
