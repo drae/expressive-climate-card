@@ -170,6 +170,11 @@ const pick = (el, label) => menuItems(el).find((b) => b.firstChild.textContent =
   openMenu(c);
   w.document.body.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true }));
   ok($(c, ".menu").hidden, "a press outside closes the menu");
+  $(c, "ha-card").getBoundingClientRect = () => ({ left: 0, top: 100, right: 380, bottom: 220, width: 380, height: 120 });
+  $(c, ".val").getBoundingClientRect = () => ({ left: 250, top: 112, right: 364, bottom: 132, width: 114, height: 20 });
+  openMenu(c);
+  ok($(c, ".menu").style.top === "36px" && $(c, ".menu").style.right === "16px", "menu drops from the value, right edge under the arrow");
+  openMenu(c);
 
   // Boost on, Hive service
   calls = [];

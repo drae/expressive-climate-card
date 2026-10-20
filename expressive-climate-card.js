@@ -697,9 +697,19 @@ class ExpressiveClimateCard extends HTMLElement {
     if (!this._menu.hidden) return this._closeMenu();
     this._fillMenu();
     this._menu.hidden = false;
+    this._placeMenu();
     this._valEl.setAttribute("aria-expanded", "true");
     document.addEventListener("pointerdown", this._outside, true);
     this._menu.querySelector("button.cur, button")?.focus();
+  }
+
+  // Drop the menu from the value: its right edge under the arrow, just below the text.
+  _placeMenu() {
+    const card = this._card.getBoundingClientRect();
+    const v = this._valEl.getBoundingClientRect();
+    if (!card.width) return;
+    this._menu.style.top = `${v.bottom - card.top + 4}px`;
+    this._menu.style.right = `${card.right - v.right}px`;
   }
 
   _closeMenu() {
