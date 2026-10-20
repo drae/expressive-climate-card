@@ -220,7 +220,8 @@ const CSS_TEXT = `
                 transparent calc(var(--hx) + var(--hw) + var(--gap)), #000 calc(var(--hx) + var(--hw) + var(--gap)));
          -webkit-mask-image: var(--cut); mask-image: var(--cut); }
   .ticks { position: absolute; inset: 0; pointer-events: none; }
-  .tick { position: absolute; z-index: 2; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%;
+  /* Same layer as the pip but before it, so the pip covers any dot under it. */
+  .tick { position: absolute; z-index: 1; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%;
           left: calc(var(--t) * (100% - var(--hw)) + var(--hw) / 2); background: var(--primary-text-color); opacity: .55; }
   .ghost { position: absolute; z-index: 2; top: 8px; bottom: 8px; width: 2px; border-radius: 1px; pointer-events: none;
            left: calc(var(--es-g) * (100% - var(--hw)) + 1px); background: var(--primary-text-color); opacity: .45; transition: left 420ms; }
