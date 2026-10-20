@@ -166,7 +166,8 @@ const CHEVRON = `<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="tr
 
 const CSS_TEXT = `
   :host { display: block; }
-  ha-card { position: relative; padding: 12px 16px 16px; overflow: visible; --pip: var(--es-pip-size, 40px); }
+  /* block: the menu is placed from the card's box */
+  ha-card { display: block; position: relative; padding: 12px 16px 16px; overflow: visible; --pip: var(--es-pip-size, 40px); }
   ha-card.transparent { background: none; border: none; box-shadow: none; padding: 4px 0 8px; }
   [hidden] { display: none !important; }
   .head { display: flex; align-items: center; gap: 8px; min-height: 24px; margin-bottom: 8px; min-width: 0; }
@@ -233,7 +234,8 @@ const CSS_TEXT = `
             font: 600 14px/1 var(--ha-font-family-body, inherit); font-variant-numeric: tabular-nums;
             transition: transform 150ms cubic-bezier(.2,0,0,1); }
   .bubble.show { transform: translateX(-50%) scale(1); }
-  .foot { display: grid; grid-template-columns: 1fr auto 1fr; align-items: baseline; margin-top: 4px;
+  /* A fixed row height, so the boost time or an off reason appearing never moves anything. */
+  .foot { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 16px; line-height: 16px; margin-top: 4px;
           font-size: 11px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
   .foot .mx { text-align: right; }
   .foot .bt { font-size: 12px; font-weight: 500; }
