@@ -229,12 +229,13 @@ const pick = (el, label) => menuItems(el).find((b) => b.firstChild.textContent =
   // Options
   states = base();
   c.remove();
-  c = mk({ entity: CL, ticks: false, labels: false, history: false, styles: { card: { background: "transparent" }, name: { size: 14 }, track: { heating: "#f00" } } });
+  c = mk({ entity: CL, ticks: false, labels: false, history: false, styles: { card: { background: "transparent", padding: "12px 16px 16px" }, name: { size: 14 }, track: { heating: "#f00" } } });
   await later();
   ok(c.shadowRoot.querySelectorAll(".tick").length === 0, "ticks: false");
   ok($(c, ".foot").hidden, "labels: false hides the row when not boosting");
   ok($(c, ".range").hidden, "history: false, no band");
   ok($(c, "ha-card").classList.contains("transparent"), "styles.card.background transparent");
+  ok(/:host ha-card \{ padding: 12px 16px 16px; \}/.test($(c, "#user").textContent), "a card padding in styles outranks the transparent padding");
   ok(/\.name \{ font-size: 14px; \}/.test($(c, "#user").textContent) && /--ec-heating: #f00/.test($(c, "#user").textContent), "styles blocks and track colours");
   ok(text(c, ".sub") === "Idle · 19.1°", "room temperature falls back to current_temperature");
   ok(Math.abs(Number($(c, ".track").style.getPropertyValue("--ec-p")) - 13.5 / 27) < 1e-9, "range falls back to min_temp / max_temp");

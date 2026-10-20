@@ -78,6 +78,8 @@ styles:
 
 ## Styles
 
+`card: background: transparent` (or `none`) drops the card's background, border and shadow and tightens its padding to `4px 0 8px`, for stacking inside another card. A `padding` in the same block still applies.
+
 Each block styles one element, and the keys are CSS properties. `size`, `weight` and `colour` are short for `font-size`, `font-weight` and `color`, and bare numbers become px. This is the same scheme as expressive-slider-card.
 
 Elements: `card`, `header`, `name`, `status`, `value`, `track`, `fill`, `empty`, `handle`, `bubble`, `pip`, `icon`, `band`, `mark` (the room temperature), `labels`, `boost` (the time left), `menu` and `glow`.

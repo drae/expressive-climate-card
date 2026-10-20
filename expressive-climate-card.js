@@ -47,7 +47,8 @@
  *     action: none
  *   styles:                    # one block per element, as in expressive-slider-card
  *     card:
- *       background: transparent
+ *       background: transparent  # no background, border or shadow; padding 4px 0 8px unless set here
+ *       padding: 12px 16px 16px
  *     name:
  *       size: 14
  *     track:
@@ -68,7 +69,7 @@
  * While a boost runs, the slider sets the boost temperature.
  */
 
-const VERSION = "0.1.2";
+const VERSION = "0.1.3";
 const HOLD_MS = 500;
 const DOUBLE_TAP_MS = 250;
 const KEY_MS = 600;
@@ -105,7 +106,8 @@ const TILE = "var(--es-tile, var(--bubble-main-background-color, var(--backgroun
 const OFF_FILL = `color-mix(in srgb, var(--secondary-text-color, #939496) 45%, ${TILE})`;
 
 const STYLE_TARGETS = {
-  card: "ha-card", header: ".head", name: ".name", status: ".sub", value: ".val", track: ".track", fill: ".active",
+  // :host raises card rules above ha-card.transparent, so e.g. a padding set in styles wins.
+  card: ":host ha-card", header: ".head", name: ".name", status: ".sub", value: ".val", track: ".track", fill: ".active",
   empty: ".inactive", handle: ".handle", bubble: ".bubble", pip: ".pip", icon: ".pip ha-icon", band: ".range", mark: ".ghost",
   labels: ".foot", boost: ".foot .bt", menu: ".menu",
 };
