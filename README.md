@@ -7,7 +7,7 @@ A thermostat card for Home Assistant in the style of [expressive-slider-card](ht
 - A dot marks every degree, with the range's ends written under the track.
 - The header reads `Idle · 19.2°` on the left and `18.5° · Auto ⌄` on the right. Tapping the right side opens the mode menu.
 - Boost starts from the menu. While it runs, the slider sets the boost temperature and the time left shows under the track.
-- When the climate is off, the status says why, from a list of helpers you give it, for example a door-open pause or an away mode.
+- When the climate is off, the header says `Paused` or `Away` and the reason shows under the track, from a list of helpers you give it, for example a door-open pause or an away mode.
 - Changes stay faded until the climate reports them, since cloud thermostats can take minutes to catch up.
 
 It is a single plain JavaScript file with no dependencies.
@@ -31,11 +31,13 @@ boost:
 off_reasons:
   - entity: input_boolean.heating_away_suspended
     state: "on"
-    label: Away · heating suspended
+    status: Away
+    label: Heating suspended
     icon: mdi:home-export-outline
   - entity: input_text.thermostat_previous_hvac_mode
     not_state: ""
-    label: Paused · door open
+    status: Paused
+    label: Door open
     icon: mdi:door-open
 styles:
   card:
@@ -59,7 +61,7 @@ styles:
 | `labels` | `true` | The range's ends under the track. |
 | `modes` | the climate's `hvac_modes`, plus `boost` | What the menu offers, in order. `boost` only appears when the climate can boost. |
 | `boost` | | `minutes` (default `60`) and `temperature` (default `21`) for a boost started from the menu. `entity` is an optional binary sensor that is on during a boost. Its last change times the countdown. |
-| `off_reasons` | none | While the climate is off, the first entry that matches gives the status text and icon. Each entry takes `entity`, `state` or `not_state`, `label` and `icon`. |
+| `off_reasons` | none | While the climate is off, the first entry that matches says why. Each entry takes `entity`, `state` or `not_state`, `status` (the header word in place of `Off`), `label` (shown centred under the track, where the boost's time left goes) and `icon`. |
 | `icons` | | Icons for the pip: `heating` (`mdi:fire`), `idle` (`mdi:thermostat`), `boost` (`mdi:fire-alert`) and `off` (`mdi:power`). |
 | `glow` | `true` | The glow round the fill while heating. Its look is set under `styles: glow:`. |
 | `tap_action` | `more-info` | Tapping the name or the pip. |

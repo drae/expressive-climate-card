@@ -34,8 +34,8 @@ const cfg = {
   entity: CL, temperature_entity: ROOM, min: 12, max: 25,
   boost: { entity: BOOST, minutes: 60, temperature: 21 },
   off_reasons: [
-    { entity: AWAY, state: "on", label: "Away · heating suspended", icon: "mdi:home-export-outline" },
-    { entity: DOOR, not_state: "", label: "Paused · door open", icon: "mdi:door-open" },
+    { entity: AWAY, state: "on", status: "Away", label: "Heating suspended", icon: "mdi:home-export-outline" },
+    { entity: DOOR, not_state: "", status: "Paused", label: "Door open", icon: "mdi:door-open" },
   ],
 };
 const mk = (c = cfg) => {
@@ -102,14 +102,15 @@ const pick = (el, label) => menuItems(el).find((b) => b.firstChild.textContent =
   update(c);
   ok(text(c, ".val") === "Off", "off: value reads Off");
   ok($(c, ".val .t").nextElementSibling.classList.contains("arr"), "off: chevron after Off");
-  ok(text(c, ".sub") === "Off · 19.2°", "off by hand");
+  ok(text(c, ".sub") === "Off · 19.2°" && text(c, ".foot .bt") === "", "off by hand, nothing under the track");
   ok($(c, ".pip ha-icon").icon === "mdi:power", "off icon");
   states[DOOR] = { state: "auto", attributes: {} };
   update(c);
-  ok(text(c, ".sub") === "Paused · door open · 19.2°" && $(c, ".pip ha-icon").icon === "mdi:door-open", "off by the door pause");
+  ok(text(c, ".sub") === "Paused · 19.2°" && $(c, ".pip ha-icon").icon === "mdi:door-open", "off by the door pause: short status");
+  ok(text(c, ".foot .bt") === "Door open", "the reason sits centred under the track");
   states[AWAY] = { state: "on", attributes: {} };
   update(c);
-  ok(text(c, ".sub") === "Away · heating suspended · 19.2°", "the first matching reason wins");
+  ok(text(c, ".sub") === "Away · 19.2°" && text(c, ".foot .bt") === "Heating suspended", "the first matching reason wins");
   calls = [];
   ptr(c, "pointerdown", 10); ptr(c, "pointermove", 80); ptr(c, "pointerup", 80);
   ok(calls.length === 0, "no target changes while off");

@@ -27,10 +27,11 @@
  *     entity: binary_sensor.thermostat_boost   # optional; its last change is when the boost started
  *     minutes: 60
  *     temperature: 21
- *   off_reasons:               # optional; the first match names why the climate is off
+ *   off_reasons:               # optional; the first match says why the climate is off
  *     - entity: input_boolean.heating_away_suspended
  *       state: "on"            # or not_state: ""
- *       label: Away · heating suspended
+ *       status: Away           # in the header instead of "Off"
+ *       label: Heating suspended   # centred under the track
  *       icon: mdi:home-export-outline
  *   icons:                     # pip icons
  *     heating: mdi:fire
@@ -643,7 +644,7 @@ class ExpressiveClimateCard extends HTMLElement {
     let text;
     if (this._unavailable) text = "Unavailable";
     else if (this._pendingAny()) text = "Updating…";
-    else if (this._action() === "off") text = `${reason?.label ?? "Off"}${t}`;
+    else if (this._action() === "off") text = `${reason?.status ?? "Off"}${t}`;
     else text = `${this._action() === "heating" ? "Heating" : "Idle"}${t}`;
     this._subEl.textContent = text;
   }
@@ -655,8 +656,11 @@ class ExpressiveClimateCard extends HTMLElement {
     const boosting = this._boosting() && !this._req?.boost;
     const left = boosting ? this._boostLeft() : null;
     const bt = this._foot.querySelector(".bt");
-    bt.innerHTML = !boosting ? "" : left != null ? `Boost · <b>${left} min</b> left` : "Boost on";
-    this._foot.hidden = !labels && !boosting;
+    // Under the track: the boost's time left, or why the climate is off.
+    const why = !boosting && !this._unavailable && this._action() === "off" ? this._offReason()?.label : null;
+    if (boosting) bt.innerHTML = left != null ? `Boost · <b>${left} min</b> left` : "Boost on";
+    else bt.textContent = why ?? "";
+    this._foot.hidden = !labels && !boosting && !why;
     // Keep the count going while a boost runs.
     if (boosting && !this._countdown) this._countdown = setInterval(() => this._renderFoot(), COUNTDOWN_MS);
     if (!boosting && this._countdown) {
