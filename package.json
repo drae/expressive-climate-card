@@ -1,0 +1,13 @@
+{
+  "name": "expressive-climate-card",
+  "private": true,
+  "description": "Thermostat card with an expressive split-track slider, for Home Assistant",
+  "license": "BSD-3-Clause",
+  "author": "Paul Owen",
+  "scripts": {
+    "test": "for f in tests/*.test.js; do echo \"# $f\"; node \"$f\" || exit 1; done"
+  },
+  "devDependencies": {
+    "jsdom": "24.1.3"
+  }
+}
