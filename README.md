@@ -65,7 +65,7 @@ styles:
 | `icons` | | Icons for the pip: `heating` (`mdi:fire`), `idle` (`mdi:thermometer`), `boost` (`mdi:fire-alert`) and `off` (`mdi:power`). |
 | `glow` | `true` | The glow round the fill while heating. Its look is set under `styles: glow:`. |
 | `tap_action` | `more-info` | Tapping the name or the pip. |
-| `hold_action` | `more-info` | Holding the slider. |
+| `hold_action` | `more-info` | Holding the pip. Holding the slider does nothing, so a press that misses a drag never opens a dialog or moves the target. |
 | `double_tap_action` | `none` | Double tapping the slider. When set, a single tap waits 250 ms before setting the value. |
 | `styles` | | See [Styles](#styles). |
 

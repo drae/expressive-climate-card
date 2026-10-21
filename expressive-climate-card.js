@@ -41,7 +41,7 @@
  *   glow: true                 # the soft light round the fill while heating
  *   tap_action:                # tapping the name or the pip (the value opens the mode menu)
  *     action: more-info
- *   hold_action:               # holding the slider
+ *   hold_action:               # holding the pip
  *     action: more-info
  *   double_tap_action:         # double tapping the slider; a single tap then waits 250 ms
  *     action: none
@@ -69,7 +69,7 @@
  * While a boost runs, the slider sets the boost temperature.
  */
 
-const VERSION = "0.1.3";
+const VERSION = "0.1.4";
 const HOLD_MS = 500;
 const DOUBLE_TAP_MS = 250;
 const KEY_MS = 600;
@@ -385,9 +385,24 @@ class ExpressiveClimateCard extends HTMLElement {
       if (e.key === "Escape") { this._closeMenu(); this._valEl.focus(); }
     });
     this._outside = (e) => { if (!e.composedPath().includes(this)) this._closeMenu(); };
-    // The pip sits on the track, so keep its presses from starting a drag.
-    this._pip.addEventListener("pointerdown", (e) => e.stopPropagation());
-    this._pip.addEventListener("click", tap);
+    // The pip sits on the track, so keep its presses from starting a drag. Holding it runs hold_action.
+    this._pip.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+      if (this._unavailable || e.button > 0) return;
+      this._pipHeld = false;
+      this._pipTimer = setTimeout(() => {
+        this._pipHeld = true;
+        this._fire("haptic", "medium");
+        this._run(this._actions.hold);
+      }, HOLD_MS);
+    });
+    for (const ev of ["pointerup", "pointercancel", "pointerleave"]) {
+      this._pip.addEventListener(ev, () => clearTimeout(this._pipTimer));
+    }
+    this._pip.addEventListener("click", () => {
+      if (!this._pipHeld) tap();
+      this._pipHeld = false;
+    });
   }
 
   // Everything that depends only on the config.
@@ -822,26 +837,19 @@ class ExpressiveClimateCard extends HTMLElement {
     return this._snapValue(min + p * (max - min));
   }
 
-  // Drag sets the value, a tap jumps to that spot, hold and double tap run their actions.
-  // Nothing moves until the pointer passes DRAG_THRESHOLD_PX, so a hold or double tap never changes the value.
+  // Drag sets the value, a tap jumps to that spot, double tap runs its action.
+  // Nothing moves until the pointer passes DRAG_THRESHOLD_PX; a still press longer than HOLD_MS sets nothing.
   _down(e) {
     if (this._unavailable || e.button > 0) return;
     this._track.setPointerCapture?.(e.pointerId);
     this._rect = this._track.getBoundingClientRect();
-    this._press = { x: e.clientX };
-    this._holdTimer = setTimeout(() => {
-      if (this._dragging || !this._press) return;
-      this._press = null;
-      this._fire("haptic", "medium");
-      this._run(this._actions.hold);
-    }, HOLD_MS);
+    this._press = { x: e.clientX, t: e.timeStamp };
   }
 
   _move(e) {
     if (!this._press || this._off) return;
     if (!this._dragging) {
       if (Math.abs(e.clientX - this._press.x) < DRAG_THRESHOLD_PX) return;
-      clearTimeout(this._holdTimer);
       this._dragging = true;
       this._track.classList.add("dragging");
     }
@@ -853,8 +861,8 @@ class ExpressiveClimateCard extends HTMLElement {
   }
 
   _up(e) {
-    clearTimeout(this._holdTimer);
-    if (!this._press) return; // the hold action already ran
+    const press = this._press;
+    if (!press) return;
     this._press = null;
     if (this._dragging) {
       this._end();
@@ -862,7 +870,7 @@ class ExpressiveClimateCard extends HTMLElement {
       return;
     }
     this._rect = null;
-    if (this._off) return; // the target can't be set while off
+    if (this._off || e.timeStamp - press.t > HOLD_MS) return; // can't be set while off; a long still press is a miss
     const v = this._valueAt(e.clientX);
     if ((this._actions.double_tap.action ?? "none") === "none") {
       this._send(v);
@@ -880,7 +888,6 @@ class ExpressiveClimateCard extends HTMLElement {
 
   _cancel() {
     // The browser took over (vertical scroll): drop the change.
-    clearTimeout(this._holdTimer);
     this._press = null;
     this._end();
     this._render();

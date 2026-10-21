@@ -152,6 +152,22 @@ const pick = (el, label) => menuItems(el).find((b) => b.firstChild.textContent =
   ptr(c, "pointerdown", 10); ptr(c, "pointerup", 10);
   ok(last() === JSON.stringify(["climate", "set_temperature", { entity_id: CL, temperature: 13 }]), "a tap sets the value straight away");
 
+  // Hold: the pip opens more-info, the track does nothing
+  const infos = [];
+  c.addEventListener("hass-more-info", (e) => infos.push(e.detail.entityId));
+  calls = [];
+  ptr(c, "pointerdown", 40); await later(550);
+  ptr(c, "pointerup", 40);
+  ok(infos.length === 0 && calls.length === 0, "a long still press on the track neither opens more-info nor sets the value");
+  const pip = $(c, ".pip");
+  pip.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, button: 0 })); await later(550);
+  pip.dispatchEvent(new w.MouseEvent("pointerup", { bubbles: true })); pip.dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  ok(infos.length === 1 && infos[0] === CL, "holding the pip opens more-info once");
+  pip.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+  pip.dispatchEvent(new w.MouseEvent("pointerup", { bubbles: true })); pip.dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  await later(550);
+  ok(infos.length === 2, "tapping the pip runs tap_action once");
+
   // Keys
   states = base();
   c.remove(); c = mk();
