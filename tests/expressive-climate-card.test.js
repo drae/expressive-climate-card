@@ -271,5 +271,18 @@ const pick = (el, label) => menuItems(el).find((b) => b.firstChild.textContent =
   ok(!c._countdown && !c._historyTimer, "cleared when detached");
 
   ok(c.getGridOptions().rows === "auto", "grid rows auto");
+
+  // extra menu rows
+  const nav = [];
+  w.addEventListener("location-changed", () => nav.push(w.location.hash));
+  const mx = mk({ ...cfg, menu_items: [{ name: "Edit schedule", tap_action: { action: "navigate", navigation_path: "#heating-schedule" } }, { info: "no name" }] });
+  openMenu(mx);
+  ok(mx.shadowRoot.querySelectorAll(".menu .sep").length === 1 && menuItems(mx).at(-1).firstChild.textContent === "Edit schedule", "menu_items sit under a separator; rows without a name are skipped");
+  calls = [];
+  menuItems(mx).at(-1).dispatchEvent(new w.Event("click", { bubbles: true }));
+  ok($(mx, ".menu").hidden && nav.at(-1) === "#heating-schedule" && !calls.length, "an extra row runs its tap_action and closes the menu");
+  const plain = mk();
+  openMenu(plain);
+  ok(!plain.shadowRoot.querySelector(".menu .sep"), "no separator without menu_items");
   process.exit();
 })();

@@ -39,6 +39,12 @@
  *     boost: mdi:fire-alert
  *     off: mdi:power
  *   glow: true                 # the soft light round the fill while heating
+ *   menu_items:                # extra rows under a line at the foot of the mode menu
+ *     - name: Edit schedule
+ *       info: ""               # optional grey text on the right
+ *       tap_action:
+ *         action: navigate
+ *         navigation_path: "#heating-schedule"
  *   tap_action:                # tapping the name or the pip (the value opens the mode menu)
  *     action: more-info
  *   hold_action:               # holding the pip
@@ -69,7 +75,7 @@
  * While a boost runs, the slider sets the boost temperature.
  */
 
-const VERSION = "0.1.4";
+const VERSION = "0.1.5";
 const HOLD_MS = 500;
 const DOUBLE_TAP_MS = 250;
 const KEY_MS = 600;
@@ -163,6 +169,8 @@ const parseStyles = (styles) => {
   return out;
 };
 
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
 const CHEVRON = `<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none"
   stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
@@ -251,6 +259,8 @@ const CSS_TEXT = `
   .menu button:hover, .menu button.cur { background: var(--card-background-color, #3a3b3d); }
   .menu button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
   .menu button span { color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
+  /* the All-lights separator: extra rows aren't thermostat controls */
+  .menu .sep { height: 2px; margin: 4px 10px; background: color-mix(in srgb, var(--primary-text-color) 10%, transparent); }
   @media (prefers-reduced-motion: reduce) { .track, .ghost, .bubble, .val .arr { transition: none; } }
 `;
 
@@ -287,6 +297,7 @@ class ExpressiveClimateCard extends HTMLElement {
       hold: action(config.hold_action, "more-info"),
       double_tap: action(config.double_tap_action, "none"),
     };
+    this._extras = (config.menu_items ?? []).filter((i) => i?.name).map((i) => ({ ...i, action: action(i.tap_action, "none") }));
     this._boostCfg = { minutes: 60, temperature: 21, ...flat(config.boost) };
     this._icons = { ...ICONS, ...flat(config.icons) };
     this._reasons = (config.off_reasons ?? []).filter((r) => r?.entity);
@@ -378,7 +389,8 @@ class ExpressiveClimateCard extends HTMLElement {
       const b = e.target.closest("button");
       if (!b) return;
       this._closeMenu();
-      if (b.dataset.boost) this._setBoost(b.dataset.boost === "on");
+      if (b.dataset.extra) this._run(this._extras[Number(b.dataset.extra)].action);
+      else if (b.dataset.boost) this._setBoost(b.dataset.boost === "on");
       else this._setMode(b.dataset.mode);
     });
     this._menu.addEventListener("keydown", (e) => {
@@ -787,7 +799,8 @@ class ExpressiveClimateCard extends HTMLElement {
       }
       return `<button type="button" role="menuitem" data-mode="${m}" class="${!boosting && mode === m ? "cur" : ""}">` +
         `${MODE_NAMES[m] ?? m}<span>${MODE_HINTS[m] ?? ""}</span></button>`;
-    }).join("");
+    }).join("") + (this._extras.length ? '<div class="sep" role="separator"></div>' : "") +
+      this._extras.map((x, i) => `<button type="button" role="menuitem" data-extra="${i}">${esc(x.name)}<span>${esc(x.info ?? "")}</span></button>`).join("");
   }
 
   // ---- Commands ----

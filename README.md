@@ -64,6 +64,7 @@ styles:
 | `off_reasons` | none | While the climate is off, the first entry that matches says why. Each entry takes `entity`, `state` or `not_state`, `status` (the header word in place of `Off`), `label` (shown centred under the track, where the boost's time left goes) and `icon`. |
 | `icons` | | Icons for the pip: `heating` (`mdi:fire`), `idle` (`mdi:thermometer`), `boost` (`mdi:fire-alert`) and `off` (`mdi:power`). |
 | `glow` | `true` | The glow round the fill while heating. Its look is set under `styles: glow:`. |
+| `menu_items` | none | Extra rows at the foot of the mode menu, under a separator line. Each takes `name`, optional `info` (grey text on the right) and `tap_action`, for example `navigate` to `#heating-schedule` to open a schedule pop-up. |
 | `tap_action` | `more-info` | Tapping the name or the pip. |
 | `hold_action` | `more-info` | Holding the pip. Holding the slider does nothing, so a press that misses a drag never opens a dialog or moves the target. |
 | `double_tap_action` | `none` | Double tapping the slider. When set, a single tap waits 250 ms before setting the value. |
